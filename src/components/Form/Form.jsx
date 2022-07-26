@@ -3,6 +3,9 @@ import { nanoid } from 'nanoid';
 import { Box, ErrorStyled, InputForm } from './Form.styled';
 import { Formik, Field } from 'formik';
 import * as yup from 'yup';
+import { connect } from 'react-redux';
+import { addContact } from 'redux/actions';
+import { useEffect } from 'react';
 
 const nameInputId = nanoid();
 const numberInputId = nanoid();
@@ -25,11 +28,31 @@ let schema = yup.object().shape({
     .required(),
 });
 
-export function Form(props) {
+const Form = ({ contacts, onSubmit }) => {
+  function isContactInItems(contacts, newContact) {
+    const { name } = newContact;
+    if (
+      contacts.find(
+        contact => contact.name.toLowerCase() === name.toLowerCase()
+      )
+    ) {
+      alert(`${name} is already in contacts`);
+      return;
+    }
+    return true;
+  }
   function handleFormSubmit(values, actions) {
-    if (!props.onSubmit(values)) return;
+    if (!isContactInItems(contacts, values)) {
+      return;
+    }
+
+    onSubmit(values);
     actions.resetForm();
   }
+
+  useEffect(() => {
+    localStorage.setItem('contacts', JSON.stringify(contacts));
+  }, [contacts]);
 
   return (
     <Box>
@@ -54,7 +77,16 @@ export function Form(props) {
       </Formik>
     </Box>
   );
-}
+};
+const mapStateToProps = state => ({
+  contacts: state.contacts.items,
+});
+
+const mapDispatchToProps = dispatch => ({
+  onSubmit: values => dispatch(addContact(values)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(Form);
 
 Formik.propTypes = {
   onSubmit: PropTypes.func.isRequired,
