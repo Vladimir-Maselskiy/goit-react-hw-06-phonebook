@@ -1,11 +1,10 @@
-import PropTypes from 'prop-types';
-import { nanoid } from 'nanoid';
-import { Box, ErrorStyled, InputForm } from './Form.styled';
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { addContact } from 'redux/actions';
 import { Formik, Field } from 'formik';
 import * as yup from 'yup';
-import { connect } from 'react-redux';
-import { addContact } from 'redux/actions';
-import { useEffect } from 'react';
+import { nanoid } from 'nanoid';
+import { Box, ErrorStyled, InputForm } from './Form.styled';
 
 const nameInputId = nanoid();
 const numberInputId = nanoid();
@@ -28,7 +27,10 @@ let schema = yup.object().shape({
     .required(),
 });
 
-const Form = ({ contacts, onSubmit }) => {
+export default function Form() {
+  const contacts = useSelector(state => state.contacts.items);
+  const dispatch = useDispatch();
+
   function isContactInItems(contacts, newContact) {
     const { name } = newContact;
     if (
@@ -41,12 +43,14 @@ const Form = ({ contacts, onSubmit }) => {
     }
     return true;
   }
+
   function handleFormSubmit(values, actions) {
     if (!isContactInItems(contacts, values)) {
       return;
     }
 
-    onSubmit(values);
+    dispatch(addContact(values));
+    // onSubmit(values);
     actions.resetForm();
   }
 
@@ -77,17 +81,4 @@ const Form = ({ contacts, onSubmit }) => {
       </Formik>
     </Box>
   );
-};
-const mapStateToProps = state => ({
-  contacts: state.contacts.items,
-});
-
-const mapDispatchToProps = dispatch => ({
-  onSubmit: values => dispatch(addContact(values)),
-});
-
-export default connect(mapStateToProps, mapDispatchToProps)(Form);
-
-Formik.propTypes = {
-  onSubmit: PropTypes.func.isRequired,
-};
+}

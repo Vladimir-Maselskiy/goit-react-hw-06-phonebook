@@ -1,36 +1,6 @@
-import { connect } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { deleteContact } from 'redux/actions';
-import PropTypes from 'prop-types';
 import { ListItem } from './ListItems.styled';
-
-const ListItems = ({ contacts, onDelete }) => {
-  return (
-    <>
-      {contacts.map(contact => {
-        const { name, number, id } = contact;
-        return (
-          <ListItem key={id}>
-            {name} {number}
-            <button id={id} onClick={() => onDelete(id)}>
-              Delete
-            </button>
-          </ListItem>
-        );
-      })}
-    </>
-  );
-};
-
-ListItems.propTypes = {
-  contacts: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
-      number: PropTypes.string.isRequired,
-    })
-  ).isRequired,
-  onDelete: PropTypes.func.isRequired,
-};
 
 function getVisibleContacts(contacts, filter) {
   if (filter === '') {
@@ -41,11 +11,25 @@ function getVisibleContacts(contacts, filter) {
   );
 }
 
-const mapStateToProps = state => ({
-  contacts: getVisibleContacts(state.contacts.items, state.contacts.filter),
-});
+export default function ListItems() {
+  const contacts = useSelector(state =>
+    getVisibleContacts(state.contacts.items, state.contacts.filter)
+  );
+  const dispatch = useDispatch();
 
-const mapDispatchToProps = dispatch => ({
-  onDelete: id => dispatch(deleteContact(id)),
-});
-export default connect(mapStateToProps, mapDispatchToProps)(ListItems);
+  return (
+    <>
+      {contacts.map(contact => {
+        const { name, number, id } = contact;
+        return (
+          <ListItem key={id}>
+            {name} {number}
+            <button id={id} onClick={() => dispatch(deleteContact(id))}>
+              Delete
+            </button>
+          </ListItem>
+        );
+      })}
+    </>
+  );
+}
